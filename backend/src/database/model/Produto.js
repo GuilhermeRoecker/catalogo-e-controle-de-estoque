@@ -6,6 +6,7 @@ class Produto {
         preco,
         quantidade,
         categoria_id,
+        criado_por,
         created_at
     ) {
         this.id = id;
@@ -14,7 +15,8 @@ class Produto {
         this.preco = preco;
         this.quantidade = quantidade;
         this.categoria_id = categoria_id;
-        this.created_at = created_at
+        this.criado_por = criado_por;
+        this.created_at = created_at;
     }
 }
 
