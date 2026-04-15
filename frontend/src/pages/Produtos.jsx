@@ -78,6 +78,7 @@ export default function Produtos() {
             } else {
                 await api.post("/produtos", {
                     ...form,
+                    preco: Number(String(form.preco).replace(",", ".")),
                     categoria_id: Number(form.categoria_id)
                 });
                 toast.success("Produto criado");
@@ -193,7 +194,8 @@ export default function Produtos() {
 
                     <input
                         className="input"
-                        type="number"
+                        type="text"
+                        inputMode="decimal"
                         placeholder="Preço"
                         value={form.preco}
                         onChange={(e) =>
