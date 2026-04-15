@@ -37,13 +37,11 @@ async function criarMovimentacao({
             novaQuantidade += quantidade;
         }
 
-        // ✏️ atualiza estoque
         await client.query(
             `UPDATE produto SET quantidade = $1 WHERE id = $2`,
             [novaQuantidade, produto_id]
         );
 
-        // 📝 cria movimentação
         const result = await client.query(
             `INSERT INTO movimentacao
             (produto_id, usuario_id, tipo, quantidade, observacao, data)
