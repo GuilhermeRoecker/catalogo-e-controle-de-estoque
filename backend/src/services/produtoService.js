@@ -43,9 +43,30 @@ async function deletarProduto(id) {
     );
 }
 
+async function atualizarProduto(id, {
+    nome,
+    descricao,
+    preco,
+    categoria_id
+}) {
+    const result = await db.query(
+        `UPDATE produto
+        SET nome = $1,
+            descricao = $2,
+            preco = $3,
+            categoria_id = $4
+        WHERE id = $5
+         RETURNING *`,
+        [nome, descricao, preco, categoria_id, id]
+    );
+
+    return result.rows[0];
+}
+
 module.exports = {
     criarProduto,
     listarProdutos,
     buscarProdutoPorId,
-    deletarProduto
+    deletarProduto,
+    atualizarProduto
 };

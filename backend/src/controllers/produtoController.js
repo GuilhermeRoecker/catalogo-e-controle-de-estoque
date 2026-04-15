@@ -6,23 +6,22 @@ async function criar(req, res) {
             nome,
             descricao,
             preco,
-            quantidade,
             categoria_id
         } = req.body;
 
-        if (!nome || !preco || !quantidade || !categoria_id) {
+        if (!nome || !preco || !categoria_id) {
             return res.status(400).json({
                 erro: 'Campos obrigatórios faltando'
             });
         }
 
-        const criado_por = req.user?.id; // assumindo authMiddleware injeta user
+        const criado_por = req.user?.id;
 
         const produto = await produtoService.criarProduto({
             nome,
             descricao,
             preco,
-            quantidade,
+            quantidade: 0,
             categoria_id,
             criado_por
         });
@@ -66,9 +65,35 @@ async function deletar(req, res) {
     }
 }
 
+async function atualizar(req, res) {
+    try {
+        const { id } = req.params;
+
+        const {
+            nome,
+            descricao,
+            preco,
+            categoria_id
+        } = req.body;
+
+        const produto = await produtoService.atualizarProduto(id, {
+            nome,
+            descricao,
+            preco,
+            categoria_id
+        });
+
+        return res.json(produto);
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ erro: 'Erro ao atualizar produto' });
+    }
+}
+
 module.exports = {
     criar,
     listar,
     buscarPorId,
-    deletar
+    deletar,
+    atualizar
 };

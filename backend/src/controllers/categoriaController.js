@@ -26,7 +26,38 @@ async function listar(req, res) {
     }
 }
 
+async function atualizar(req, res) {
+    try {
+        const { id } = req.params;
+        const { nome, descricao } = req.body;
+
+        if (!nome) {
+            return res.status(400).json({ erro: 'Nome é obrigatório' });
+        }
+
+        const categoria = await categoriaService.atualizarCategoria(id, {
+            nome,
+            descricao
+        });
+
+        return res.json(categoria);
+    } catch (err) {
+        return res.status(500).json({ erro: 'Erro ao atualizar categoria' });
+    }
+}
+
+async function deletar(req, res) {
+    try {
+        await categoriaService.deletarCategoria(req.params.id);
+        return res.status(204).send();
+    } catch (err) {
+        return res.status(500).json({ erro: 'Erro ao deletar categoria' });
+    }
+}
+
 module.exports = {
     criar,
-    listar
+    listar,
+    atualizar,
+    deletar
 };

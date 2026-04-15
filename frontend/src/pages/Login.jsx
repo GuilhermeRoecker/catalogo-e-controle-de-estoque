@@ -1,82 +1,99 @@
 import { useState } from "react";
-import { login } from "../services/authService";
-import { setToken } from "../services/auth";
-import { useNavigate, Link } from "react-router-dom";
+import { login, register } from "../services/authService";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function Login() {
+    const [modo, setModo] = useState("login"); // login | register
+    const [nome, setNome] = useState("");
     const [email, setEmail] = useState("");
     const [senha, setSenha] = useState("");
+    const [loading, setLoading] = useState(false);
+
     const navigate = useNavigate();
 
-    async function handleLogin(e) {
+    async function handleSubmit(e) {
         e.preventDefault();
+        setLoading(true);
 
         try {
-            const data = await login(email, senha);
-            setToken(data.token);
+            if (modo === "login") {
+                await login(email, senha);
+                toast.success("Login realizado");
+            } else {
+                await register(nome, email, senha);
+                toast.success("Conta criada");
+            }
+
             navigate("/");
         } catch (err) {
-            alert("Erro no login");
+            toast.error(err?.response?.data?.erro || "Erro");
+        } finally {
+            setLoading(false);
         }
     }
 
     return (
-        <div style={styles.container}>
-            <form style={styles.form} onSubmit={handleLogin}>
-                <h2>Login</h2>
+        <div className="container-center">
+            <form className="card" onSubmit={handleSubmit}>
+                <h2>{modo === "login" ? "Login" : "Cadastro"}</h2>
+
+                {modo === "register" && (
+                    <input
+                        className="input"
+                        placeholder="Nome"
+                        value={nome}
+                        onChange={(e) => setNome(e.target.value)}
+                    />
+                )}
 
                 <input
+                    className="input"
                     placeholder="Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    style={styles.input}
                 />
 
                 <input
+                    className="input"
                     type="password"
                     placeholder="Senha"
                     value={senha}
                     onChange={(e) => setSenha(e.target.value)}
-                    style={styles.input}
                 />
 
-                <button style={styles.button}>Entrar</button>
+                <button className="button">
+                    {loading
+                        ? "Carregando..."
+                        : modo === "login"
+                        ? "Entrar"
+                        : "Cadastrar"}
+                </button>
 
-                <p>
-                    Não tem conta? <Link to="/register">Cadastrar</Link>
+                <p style={{ fontSize: 14 }}>
+                    {modo === "login" ? (
+                        <>
+                            Não tem conta?{" "}
+                            <span
+                                className="link"
+                                onClick={() => setModo("register")}
+                            >
+                                Cadastrar
+                            </span>
+                        </>
+                    ) : (
+                        <>
+                            Já tem conta?{" "}
+                            <span
+                                className="link"
+                                onClick={() => setModo("login")}
+                            >
+                                Fazer login
+                            </span>
+                        </>
+                    )}
                 </p>
             </form>
         </div>
     );
 }
-
-const styles = {
-    container: {
-        display: "flex",
-        height: "100vh",
-        justifyContent: "center",
-        alignItems: "center"
-    },
-    form: {
-        background: "#1c1d3b",
-        padding: 30,
-        borderRadius: 10,
-        display: "flex",
-        flexDirection: "column",
-        gap: 10,
-        width: 300,
-        border: "1px solid #74dc3b"
-    },
-    input: {
-        padding: 10,
-        borderRadius: 5,
-        border: "none"
-    },
-    button: {
-        padding: 10,
-        background: "#74dc3b",
-        border: "none",
-        borderRadius: 5,
-        fontWeight: "bold"
-    }
-};

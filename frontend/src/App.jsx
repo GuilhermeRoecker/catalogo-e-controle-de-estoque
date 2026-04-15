@@ -1,10 +1,14 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home";
+import Categorias from "./pages/Categorias";
 
 import ProtectedRoute from "./components/ProtectedRoute";
+import Movimentacoes from "./pages/Movimentacoes";
 
 export default function App() {
     return (
@@ -25,19 +29,10 @@ export default function App() {
                 />
 
                 <Route
-                    path="/produtos"
-                    element={
-                        <ProtectedRoute>
-                            <div>Produtos (vai virar tela depois)</div>
-                        </ProtectedRoute>
-                    }
-                />
-
-                <Route
                     path="/categorias"
                     element={
                         <ProtectedRoute>
-                            <div>Categorias (vai virar tela depois)</div>
+                            <Categorias />
                         </ProtectedRoute>
                     }
                 />
@@ -46,11 +41,12 @@ export default function App() {
                     path="/movimentacoes"
                     element={
                         <ProtectedRoute>
-                            <div>Movimentações (vai virar tela depois)</div>
+                            <Movimentacoes/>
                         </ProtectedRoute>
                     }
                 />
             </Routes>
+            <ToastContainer />
         </BrowserRouter>
     );
 }
