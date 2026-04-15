@@ -54,6 +54,13 @@ export default function Produtos() {
         setOpenModal(true);
     }
 
+    function fecharModal() {
+        setOpenModal(false);
+        setEditando(false);
+        setProdutoId(null);
+        setForm({ nome: "", descricao: "", preco: "", categoria_id: "" });
+    }
+
     async function salvar(e) {
         e.preventDefault();
 
@@ -61,16 +68,26 @@ export default function Produtos() {
             return toast.error("Preencha os campos obrigatórios");
         }
 
-        if (editando) {
-            await api.put(`/produtos/${produtoId}`, form);
-            toast.success("Atualizado");
-        } else {
-            await api.post("/produtos", form);
-            toast.success("Criado");
-        }
+        try {
+            if (editando) {
+                await api.put(`/produtos/${produtoId}`, {
+                    ...form,
+                    categoria_id: Number(form.categoria_id)
+                });
+                toast.success("Produto atualizado");
+            } else {
+                await api.post("/produtos", {
+                    ...form,
+                    categoria_id: Number(form.categoria_id)
+                });
+                toast.success("Produto criado");
+            }
 
-        setOpenModal(false);
-        carregarProdutos();
+            fecharModal();
+            carregarProdutos();
+        } catch {
+            toast.error("Erro ao salvar");
+        }
     }
 
     function confirmarDelete(id) {
@@ -79,10 +96,16 @@ export default function Produtos() {
     }
 
     async function deletar() {
-        await api.delete(`/produtos/${produtoDeleteId}`);
-        toast.success("Deletado");
-        setConfirmOpen(false);
-        carregarProdutos();
+        try {
+            await api.delete(`/produtos/${produtoDeleteId}`);
+            toast.success("Produto deletado");
+            carregarProdutos();
+        } catch {
+            toast.error("Erro ao deletar");
+        } finally {
+            setConfirmOpen(false);
+            setProdutoDeleteId(null);
+        }
     }
 
     return (
@@ -91,7 +114,9 @@ export default function Produtos() {
 
             <div className="top-bar">
                 <h2>Produtos</h2>
-                <button className="add-btn" onClick={abrirCriacao}>+ Produto</button>
+                <button className="add-btn" onClick={abrirCriacao}>
+                    + Produto
+                </button>
             </div>
 
             <table className="table">
@@ -117,11 +142,17 @@ export default function Produtos() {
 
                             <td>
                                 <div style={{ display: "flex", gap: 10 }}>
-                                    <button className="btn btn-warning" onClick={() => abrirEdicao(p)}>
+                                    <button
+                                        className="btn btn-warning"
+                                        onClick={() => abrirEdicao(p)}
+                                    >
                                         Editar
                                     </button>
 
-                                    <button className="btn btn-danger" onClick={() => confirmarDelete(p.id)}>
+                                    <button
+                                        className="btn btn-danger"
+                                        onClick={() => confirmarDelete(p.id)}
+                                    >
                                         Deletar
                                     </button>
 
@@ -137,7 +168,83 @@ export default function Produtos() {
                 </tbody>
             </table>
 
-            {/* modal e confirmação iguais ao que você já tem */}
+            {/* MODAL CRIAR/EDITAR */}
+            <Modal isOpen={openModal} onClose={fecharModal}>
+                <h3>{editando ? "Editar Produto" : "Novo Produto"}</h3>
+
+                <form className="form" onSubmit={salvar}>
+                    <input
+                        className="input"
+                        placeholder="Nome"
+                        value={form.nome}
+                        onChange={(e) =>
+                            setForm({ ...form, nome: e.target.value })
+                        }
+                    />
+
+                    <input
+                        className="input"
+                        placeholder="Descrição"
+                        value={form.descricao}
+                        onChange={(e) =>
+                            setForm({ ...form, descricao: e.target.value })
+                        }
+                    />
+
+                    <input
+                        className="input"
+                        type="number"
+                        placeholder="Preço"
+                        value={form.preco}
+                        onChange={(e) =>
+                            setForm({ ...form, preco: e.target.value })
+                        }
+                    />
+
+                    <select
+                        className="input"
+                        value={form.categoria_id}
+                        onChange={(e) =>
+                            setForm({
+                                ...form,
+                                categoria_id: e.target.value
+                            })
+                        }
+                    >
+                        <option value="">Selecione</option>
+
+                        {categorias.map(c => (
+                            <option key={c.id} value={c.id}>
+                                {c.nome}
+                            </option>
+                        ))}
+                    </select>
+
+                    <button className="button">
+                        {editando ? "Atualizar" : "Salvar"}
+                    </button>
+                </form>
+            </Modal>
+
+            {/* MODAL CONFIRMAÇÃO */}
+            <Modal isOpen={confirmOpen} onClose={() => setConfirmOpen(false)}>
+                <h3>Confirmar exclusão</h3>
+
+                <p>Deseja realmente deletar este produto?</p>
+
+                <div style={{ display: "flex", gap: 10 }}>
+                    <button className="btn btn-success" onClick={deletar}>
+                        Confirmar
+                    </button>
+
+                    <button
+                        className="btn btn-danger"
+                        onClick={() => setConfirmOpen(false)}
+                    >
+                        Cancelar
+                    </button>
+                </div>
+            </Modal>
         </div>
     );
 }
