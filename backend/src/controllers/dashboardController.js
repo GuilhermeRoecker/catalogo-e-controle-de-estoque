@@ -30,6 +30,5 @@ async function recentes(req, res) {
 module.exports = {
     estoqueBaixo,
     categorias,
-    estoquePorCategoria,
     recentes
 };

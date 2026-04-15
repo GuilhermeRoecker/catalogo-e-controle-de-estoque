@@ -7,6 +7,8 @@ import Modal from "../components/Modal";
 export default function Movimentacoes() {
   const [movs, setMovs] = useState([]);
   const [produtos, setProdutos] = useState([]);
+  const [buscaProduto, setBuscaProduto] = useState("");
+  const [produtoSelecionado, setProdutoSelecionado] = useState(null);
   const [openModal, setOpenModal] = useState(false);
 
   const [form, setForm] = useState({
@@ -47,6 +49,7 @@ export default function Movimentacoes() {
       observacao: "",
     });
 
+    setBuscaProduto("");
     setOpenModal(true);
   }
 
@@ -87,7 +90,7 @@ export default function Movimentacoes() {
           <h2>Movimentações</h2>
 
           <button className="add-btn" onClick={abrirModal}>
-            + Movimentação
+            ➕ Movimentação
           </button>
         </div>
 
@@ -113,7 +116,7 @@ export default function Movimentacoes() {
 
                 <td>{m.observacao || "-"}</td>
 
-                <td>{new Date(m.data).toLocaleString()}</td>
+                <td>{new Date(m.data).toLocaleString().replace(",", " -")}</td>
               </tr>
             ))}
           </tbody>
@@ -124,19 +127,45 @@ export default function Movimentacoes() {
         <h3>Nova Movimentação</h3>
 
         <form className="form" onSubmit={salvar}>
-          <select
+          <input
             className="input"
-            value={form.produto_id}
-            onChange={(e) => setForm({ ...form, produto_id: e.target.value })}
-          >
-            <option value="">Selecione o produto</option>
+            placeholder="Buscar produto..."
+            value={buscaProduto}
+            onChange={(e) => setBuscaProduto(e.target.value)}
+          />
 
-            {produtos.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.nome} (Estoque: {p.quantidade})
-              </option>
-            ))}
-          </select>
+          <div
+            style={{
+              maxHeight: 160,
+              overflowY: "auto",
+              border: "1px solid #333",
+              borderRadius: 6,
+              marginTop: 5,
+            }}
+          >
+            {produtos
+              .filter((p) =>
+                p.nome.toLowerCase().includes(buscaProduto.toLowerCase()),
+              )
+              .map((p) => (
+                <div
+                  key={p.id}
+                  onClick={() => {
+                    setForm({ ...form, produto_id: p.id });
+                    setBuscaProduto(p.nome);
+                  }}
+                  style={{
+                    padding: 8,
+                    cursor: "pointer",
+                    borderBottom: "1px solid #222",
+                    background:
+                      form.produto_id === p.id ? "#2a2b4a" : "transparent",
+                  }}
+                >
+                  {p.nome} (Estoque: {p.quantidade})
+                </div>
+              ))}
+          </div>
 
           <select
             className="input"
