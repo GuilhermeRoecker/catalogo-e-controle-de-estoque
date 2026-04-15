@@ -14,7 +14,7 @@ export default function ProtectedRoute({ children }) {
     }, []);
 
     if (loading) {
-        return null;
+         return <div>Carregando...</div>;
     }
 
     if (!auth) {

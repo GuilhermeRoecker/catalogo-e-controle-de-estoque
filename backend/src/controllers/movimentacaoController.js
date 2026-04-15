@@ -61,8 +61,21 @@ async function buscarPorId(req, res) {
     }
 }
 
+async function filtrar(req, res) {
+    const { dataInicio, dataFim } = req.query;
+
+    const result = await db.query(`
+        SELECT * FROM movimentacao
+        WHERE data BETWEEN $1 AND $2
+        ORDER BY data DESC
+    `, [dataInicio, dataFim]);
+
+    res.json(result.rows);
+}
+
 module.exports = {
     criar,
     listar,
-    buscarPorId
+    buscarPorId,
+    filtrar
 };

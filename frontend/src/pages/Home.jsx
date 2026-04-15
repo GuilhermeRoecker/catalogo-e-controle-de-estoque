@@ -3,153 +3,38 @@ import { Link, useNavigate } from "react-router-dom";
 import { logout } from "../services/auth";
 import api from "../services/api";
 import { toast } from "react-toastify";
-import Modal from "../components/Modal";
+import GraficoCategorias from "../components/GraficoCategorias";
 
 export default function Home() {
     const navigate = useNavigate();
 
-    const [produtos, setProdutos] = useState([]);
-    const [categorias, setCategorias] = useState([]);
-    const [openModal, setOpenModal] = useState(false);
-    const [editando, setEditando] = useState(false);
-    const [produtoId, setProdutoId] = useState(null);
-    const [confirmOpen, setConfirmOpen] = useState(false);
-    const [produtoDeleteId, setProdutoDeleteId] = useState(null);
-
-    const [form, setForm] = useState({
-        nome: "",
-        descricao: "",
-        preco: "",
-        categoria_id: ""
-    });
+    const [estoqueBaixo, setEstoqueBaixo] = useState([]);
+    const [grafico, setGrafico] = useState([]);
+    const [recentes, setRecentes] = useState([]);
 
     useEffect(() => {
-        carregarProdutos();
-        carregarCategorias();
+        carregarDashboard();
     }, []);
-
-    async function carregarProdutos() {
-        try {
-            const res = await api.get("/produtos");
-            setProdutos(res.data);
-        } catch {
-            toast.error("Erro ao carregar produtos");
-        }
-    }
-
-    async function carregarCategorias() {
-        try {
-            const res = await api.get("/categorias");
-            setCategorias(res.data);
-        } catch {
-            toast.error("Erro ao carregar categorias");
-        }
-    }
 
     function handleLogout() {
         logout();
         navigate("/login");
     }
 
-    async function salvarProduto(e) {
-        e.preventDefault();
-
-        if (!form.nome || !form.preco || !form.categoria_id) {
-            return toast.error("Preencha os campos obrigatórios");
-        }
-
+    async function carregarDashboard() {
         try {
-            if (editando) {
-                await api.put(`/produtos/${produtoId}`, {
-                    ...form,
-                    categoria_id: Number(form.categoria_id)
-                });
+            const [b, g, r] = await Promise.all([
+                api.get("/dashboard/baixo"),
+                api.get("/dashboard/categorias"),
+                api.get("/dashboard/recentes")
+            ]);
 
-                toast.success("Produto atualizado");
-            } else {
-                await api.post("/produtos", {
-                    ...form,
-                    categoria_id: Number(form.categoria_id)
-                });
-
-                toast.success("Produto criado");
-            }
-
-            setOpenModal(false);
-            setEditando(false);
-            setProdutoId(null);
-
-            carregarProdutos();
-
-            setForm({
-                nome: "",
-                descricao: "",
-                preco: "",
-                categoria_id: ""
-            });
-        } catch (err) {
-            toast.error(err?.response?.data?.erro || "Erro");
-        }
-    }
-
-    function confirmarDeleteProduto(id) {
-        setProdutoDeleteId(id);
-        setConfirmOpen(true);
-    }
-
-    async function deletarProdutoConfirmado() {
-        try {
-            await api.delete(`/produtos/${produtoDeleteId}`);
-            toast.success("Produto deletado");
-            carregarProdutos();
+            setEstoqueBaixo(b.data);
+            setGrafico(g.data);
+            setRecentes(r.data);
         } catch {
-            toast.error("Erro ao deletar");
-        } finally {
-            setConfirmOpen(false);
-            setProdutoDeleteId(null);
+            toast.error("Erro ao carregar dashboard");
         }
-    }
-
-    function abrirCriacao() {
-        setEditando(false);
-        setProdutoId(null);
-
-        setForm({
-            nome: "",
-            descricao: "",
-            preco: "",
-            quantidade: "",
-            categoria_id: ""
-        });
-
-        setOpenModal(true);
-    }
-
-    function abrirEdicao(produto) {
-        setForm({
-            nome: produto.nome,
-            descricao: produto.descricao || "",
-            preco: produto.preco,
-            categoria_id: String(produto.categoria_id)
-        });
-
-        setProdutoId(produto.id);
-        setEditando(true);
-        setOpenModal(true);
-    }
-
-    function fecharModal() {
-        setOpenModal(false);
-        setEditando(false);
-        setProdutoId(null);
-
-        setForm({
-            nome: "",
-            descricao: "",
-            preco: "",
-            quantidade: "",
-            categoria_id: ""
-        });
     }
 
     return (
@@ -166,6 +51,10 @@ export default function Home() {
             <div className="content">
                 {/* NAVEGAÇÃO */}
                 <div className="card-nav">
+                    <Link className="nav-item" to="/produtos">
+                        Produtos
+                    </Link>
+
                     <Link className="nav-item" to="/categorias">
                         Categorias
                     </Link>
@@ -175,147 +64,58 @@ export default function Home() {
                     </Link>
                 </div>
 
-                {/* PRODUTOS */}
+                {/* DASHBOARD */}
                 <div className="section">
-                    <div className="top-bar">
-                        <h2>Produtos</h2>
+                    <h2>📊 Visão geral</h2>
 
-                        <button
-                            className="add-btn"
-                            onClick={abrirCriacao}
-                        >
-                            + Produto
-                        </button>
+                    <div className="dashboard-container">
+
+                        {/* ESTOQUE BAIXO */}
+                        <div className="dashboard-card">
+                            <h3>⚠️ Estoque baixo</h3>
+
+                            {estoqueBaixo.length === 0 ? (
+                                <p className="empty">Nenhum produto com estoque baixo</p>
+                            ) : (
+                                estoqueBaixo.map(p => (
+                                    <div key={p.id} className="item-row alerta">
+                                        <span>{p.nome}</span>
+                                        <strong>{p.quantidade}</strong>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        {/* GRÁFICO */}
+                        <div className="dashboard-card">
+                            <h3>📊 Produtos por categoria</h3>
+
+                            <div className="grafico-wrapper">
+                                <GraficoCategorias data={grafico} />
+                            </div>
+                        </div>
+
+                        {/* MOVIMENTAÇÕES */}
+                        <div className="dashboard-card">
+                            <h3>📦 Movimentações recentes</h3>
+
+                            {recentes.length === 0 ? (
+                                <p className="empty">Nenhuma movimentação</p>
+                            ) : (
+                                recentes.map(m => (
+                                    <div key={m.id} className="item-row">
+                                        <span>{m.produto_nome}</span>
+                                        <span className={m.tipo === "entrada" ? "entrada" : "saida"}>
+                                            {m.tipo} ({m.quantidade})
+                                        </span>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
                     </div>
-
-                    <table className="table">
-                        <thead>
-                            <tr>
-                                <th>Nome</th>
-                                <th>Preço</th>
-                                <th>Quantidade</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {produtos.map((p) => (
-                                <tr key={p.id}>
-                                    <td>{p.nome}</td>
-                                    <td>R$ {Number(p.preco || 0).toFixed(2)}</td>
-                                    <td style={{
-                                        color: p.quantidade < 5 ? "red" : "white",
-                                        fontWeight: p.quantidade < 5 ? "bold" : "normal"
-                                    }}>
-                                        {p.quantidade}
-                                    </td>
-
-                                    <td>
-                                        <div style={{ display: "flex", gap: 10, marginTop: 15 }}>
-                                            <button
-                                                className="btn btn-warning"
-                                                onClick={() => abrirEdicao(p)}
-                                            >
-                                                Editar
-                                            </button>
-
-                                            <button
-                                                className="btn btn-danger"
-                                                onClick={() => confirmarDeleteProduto(p.id)}
-                                            >
-                                                Deletar
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
                 </div>
             </div>
-
-            {/* MODAL */}
-            <Modal isOpen={openModal} onClose={fecharModal}>
-                <h3>{editando ? "Editar Produto" : "Novo Produto"}</h3>
-
-                <form className="form" onSubmit={salvarProduto}>
-                    <input
-                        className="input"
-                        placeholder="Nome"
-                        value={form.nome}
-                        onChange={(e) =>
-                            setForm({ ...form, nome: e.target.value })
-                        }
-                    />
-
-                    <input
-                        className="input"
-                        placeholder="Descrição"
-                        value={form.descricao}
-                        onChange={(e) =>
-                            setForm({ ...form, descricao: e.target.value })
-                        }
-                    />
-
-                    <input
-                        className="input"
-                        placeholder="Preço"
-                        type="number"
-                        value={form.preco}
-                        onChange={(e) =>
-                            setForm({ ...form, preco: e.target.value })
-                        }
-                    />
-
-                    <select
-                        className="input"
-                        value={form.categoria_id}
-                        onChange={(e) =>
-                            setForm({
-                                ...form,
-                                categoria_id: e.target.value
-                            })
-                        }
-                    >
-                        <option value="">Selecione uma categoria</option>
-
-                        {categorias.length === 0 ? (
-                            <option disabled>Carregando...</option>
-                        ) : (
-                            categorias.map((c) => (
-                                <option key={c.id} value={c.id}>
-                                    {c.nome}
-                                </option>
-                            ))
-                        )}
-                    </select>
-
-                    <button className="button">
-                        {editando ? "Atualizar" : "Salvar"}
-                    </button>
-                </form>
-            </Modal>
-
-            <Modal isOpen={confirmOpen} onClose={() => setConfirmOpen(false)}>
-                <h3>Confirmar exclusão</h3>
-
-                <p>Deseja realmente deletar este produto?</p>
-
-                <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
-                    <button
-                        className="btn btn-success"
-                        onClick={deletarProdutoConfirmado}
-                    >
-                        Confirmar
-                    </button>
-
-                    <button
-                        className="btn btn-danger"
-                        onClick={() => setConfirmOpen(false)}
-                    >
-                        Cancelar
-                    </button>
-                </div>
-            </Modal>
         </div>
     );
 }

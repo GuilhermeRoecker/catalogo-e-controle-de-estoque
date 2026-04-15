@@ -6,6 +6,9 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home";
 import Categorias from "./pages/Categorias";
+import Produtos from "./pages/Produtos";
+import NotFound from "./pages/NotFound";
+
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import Movimentacoes from "./pages/Movimentacoes";
@@ -29,6 +32,15 @@ export default function App() {
                 />
 
                 <Route
+                    path="/produtos"
+                    element={
+                        <ProtectedRoute>
+                            <Produtos />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
                     path="/categorias"
                     element={
                         <ProtectedRoute>
@@ -41,7 +53,16 @@ export default function App() {
                     path="/movimentacoes"
                     element={
                         <ProtectedRoute>
-                            <Movimentacoes/>
+                            <Movimentacoes />
+                        </ProtectedRoute>
+                    }
+                />
+
+                <Route
+                    path="*"
+                    element={
+                        <ProtectedRoute>
+                            <NotFound />
                         </ProtectedRoute>
                     }
                 />
