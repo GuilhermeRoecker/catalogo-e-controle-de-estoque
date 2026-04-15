@@ -89,7 +89,7 @@ export default function Home() {
 
             {/* GRÁFICO */}
             <div className="dashboard-card">
-              <h3>📊 Produtos por categoria</h3>
+              <h3>📊 Produtos e estoque por categoria</h3>
 
               <div className="grafico-wrapper">
                 <GraficoCategorias data={grafico} />

@@ -11,7 +11,7 @@ async function estoqueBaixo(req, res) {
 
 async function categorias(req, res) {
     try {
-        const data = await dashboardService.produtosPorCategoria();
+        const data = await dashboardService.categoriasResumo();
         return res.json(data);
     } catch {
         return res.status(500).json({ erro: "Erro ao buscar categorias" });
@@ -30,5 +30,6 @@ async function recentes(req, res) {
 module.exports = {
     estoqueBaixo,
     categorias,
+    estoquePorCategoria,
     recentes
 };

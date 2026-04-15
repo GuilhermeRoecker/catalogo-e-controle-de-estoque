@@ -33,10 +33,33 @@ async function atualizarCategoria(id, { nome, descricao }) {
 }
 
 async function deletarCategoria(id) {
-    await db.query(
-        `DELETE FROM categoria WHERE id = $1`,
-        [id]
-    );
+    const client = await db.connect();
+
+    try {
+        await client.query("BEGIN");
+
+        const produtos = await client.query(
+            `SELECT 1 FROM produto WHERE categoria_id = $1 LIMIT 1`,
+            [id]
+        );
+
+        if (produtos.rowCount > 0) {
+            throw new Error("Não é possível excluir: existem produtos vinculados a esta categoria");
+        }
+
+        await client.query(
+            `DELETE FROM categoria WHERE id = $1`,
+            [id]
+        );
+
+        await client.query("COMMIT");
+
+    } catch (err) {
+        await client.query("ROLLBACK");
+        throw err;
+    } finally {
+        client.release();
+    }
 }
 
 module.exports = {

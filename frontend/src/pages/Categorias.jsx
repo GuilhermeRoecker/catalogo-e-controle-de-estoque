@@ -117,7 +117,7 @@ export default function Categorias() {
                         className="add-btn"
                         onClick={abrirCriacao}
                     >
-                        + Categoria
+                        ➕ Categoria
                     </button>
                 </div>
 

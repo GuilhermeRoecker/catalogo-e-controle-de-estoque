@@ -115,7 +115,7 @@ export default function Produtos() {
             <div className="top-bar">
                 <h2>Produtos</h2>
                 <button className="add-btn" onClick={abrirCriacao}>
-                    + Produto
+                    ➕ Produto
                 </button>
             </div>
 
