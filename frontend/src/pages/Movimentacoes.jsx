@@ -8,8 +8,8 @@ export default function Movimentacoes() {
   const [movs, setMovs] = useState([]);
   const [produtos, setProdutos] = useState([]);
   const [buscaProduto, setBuscaProduto] = useState("");
-  const [produtoSelecionado, setProdutoSelecionado] = useState(null);
   const [openModal, setOpenModal] = useState(false);
+  const [mostrarLista, setMostrarLista] = useState(false);
 
   const [form, setForm] = useState({
     produto_id: "",
@@ -50,6 +50,7 @@ export default function Movimentacoes() {
     });
 
     setBuscaProduto("");
+    setMostrarLista(false);
     setOpenModal(true);
   }
 
@@ -78,6 +79,22 @@ export default function Movimentacoes() {
       toast.error(err?.response?.data?.erro || err.message);
     }
   }
+
+  function normalizar(texto = "") {
+    return texto
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+  }
+
+  const filtrados = produtos.filter((p) =>
+    normalizar(p.nome).includes(normalizar(buscaProduto))
+  );
+
+  const listaVisivel =
+    mostrarLista &&
+    buscaProduto.trim().length > 0 &&
+    filtrados.length > 0;
 
   return (
     <div className="content">
@@ -109,13 +126,9 @@ export default function Movimentacoes() {
             {movs.map((m) => (
               <tr key={m.id}>
                 <td>{m.produto_nome}</td>
-
                 <td>{m.tipo === "entrada" ? "Entrada" : "Saída"}</td>
-
                 <td>{m.quantidade}</td>
-
                 <td>{m.observacao || "-"}</td>
-
                 <td>{new Date(m.data).toLocaleString().replace(",", " -")}</td>
               </tr>
             ))}
@@ -131,46 +144,50 @@ export default function Movimentacoes() {
             className="input"
             placeholder="Buscar produto..."
             value={buscaProduto}
-            onChange={(e) => setBuscaProduto(e.target.value)}
+            onChange={(e) => {
+              setBuscaProduto(e.target.value);
+              setMostrarLista(true);
+            }}
           />
 
-          <div
-            style={{
-              maxHeight: 160,
-              overflowY: "auto",
-              border: "1px solid #333",
-              borderRadius: 6,
-              marginTop: 5,
-            }}
-          >
-            {produtos
-              .filter((p) =>
-                p.nome.toLowerCase().includes(buscaProduto.toLowerCase()),
-              )
-              .map((p) => (
+          {listaVisivel && (
+            <div
+              style={{
+                maxHeight: 160,
+                overflowY: "auto",
+                border: "1px solid #ccc",
+                borderRadius: 6,
+                marginTop: 5,
+                background: "#fff",
+                color: "#000",
+              }}
+            >
+              {filtrados.map((p) => (
                 <div
                   key={p.id}
                   onClick={() => {
                     setForm({ ...form, produto_id: p.id });
                     setBuscaProduto(p.nome);
+                    setMostrarLista(false);
                   }}
                   style={{
                     padding: 8,
                     cursor: "pointer",
-                    borderBottom: "1px solid #222",
-                    background:
-                      form.produto_id === p.id ? "#2a2b4a" : "transparent",
+                    borderBottom: "1px solid #eee",
                   }}
                 >
                   {p.nome} (Estoque: {p.quantidade})
                 </div>
               ))}
-          </div>
+            </div>
+          )}
 
           <select
             className="input"
             value={form.tipo}
-            onChange={(e) => setForm({ ...form, tipo: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, tipo: e.target.value })
+            }
           >
             <option value="entrada">Entrada</option>
             <option value="saida">Saída</option>
@@ -181,14 +198,18 @@ export default function Movimentacoes() {
             type="number"
             placeholder="Quantidade"
             value={form.quantidade}
-            onChange={(e) => setForm({ ...form, quantidade: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, quantidade: e.target.value })
+            }
           />
 
           <input
             className="input"
             placeholder="Observação"
             value={form.observacao}
-            onChange={(e) => setForm({ ...form, observacao: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, observacao: e.target.value })
+            }
           />
 
           <button className="button">Salvar</button>

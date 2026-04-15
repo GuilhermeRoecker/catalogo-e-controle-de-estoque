@@ -25,9 +25,9 @@ export default function Categorias() {
         try {
             const res = await api.get("/categorias");
             setCategorias(res.data);
-        } catch {
-            toast.error("Erro ao carregar categorias");
-        }
+        } catch (err) {
+      toast.error(err?.response?.data?.erro || err.message);
+    }
     }
 
     function abrirCriacao() {
