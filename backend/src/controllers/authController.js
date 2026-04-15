@@ -28,7 +28,13 @@ function me(req, res) {
 }
 
 function logout(req, res) {
-    res.clearCookie('token');
+    res.clearCookie('token', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        path: '/'
+    });
+
     return res.json({ mensagem: 'Logout realizado' });
 }
 
